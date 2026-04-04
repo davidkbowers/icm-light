@@ -1,0 +1,109 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Time Card #{{ card.id }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'timecard/timecard.css' %}">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="hero">
+            <p class="hero-kicker">Review</p>
+            <h1>Time Card #{{ card.id }}</h1>
+            <p>{{ card.employee_name }} | Week Ending {{ card.week_ending }} | Status: {{ card.get_status_display }}</p>
+            <p>
+                <a class="btn btn-soft" href="{% url 'timecard:dashboard' %}">Back to Dashboard</a>
+                <a class="btn btn-soft" href="{% url 'timecard:timecard-print-preview' card.id %}">Open Print Preview</a>
+            </p>
+        </header>
+
+        <section class="panel">
+            <div class="table-wrap">
+                <table class="dash-table tiny">
+                    <thead>
+                        <tr>
+                            <th>Job</th>
+                            <th>Phase</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Mon ST</th>
+                            <th>Mon OT</th>
+                            <th>Tue ST</th>
+                            <th>Tue OT</th>
+                            <th>Wed ST</th>
+                            <th>Wed OT</th>
+                            <th>Thu ST</th>
+                            <th>Thu OT</th>
+                            <th>Fri ST</th>
+                            <th>Fri OT</th>
+                            <th>Sat ST</th>
+                            <th>Sat OT</th>
+                            <th>Sun ST</th>
+                            <th>Sun OT</th>
+                            <th>Vac</th>
+                            <th>Hol</th>
+                            <th>Comp</th>
+                            <th>Fun</th>
+                            <th>Jury</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in entries %}
+                        <tr>
+                            <td>{{ line.job_number }}</td>
+                            <td>{{ line.phase }}</td>
+                            <td>{{ line.category }}</td>
+                            <td>{{ line.description }}</td>
+                            <td>{{ line.mon_st }}</td>
+                            <td>{{ line.mon_ot }}</td>
+                            <td>{{ line.tue_st }}</td>
+                            <td>{{ line.tue_ot }}</td>
+                            <td>{{ line.wed_st }}</td>
+                            <td>{{ line.wed_ot }}</td>
+                            <td>{{ line.thu_st }}</td>
+                            <td>{{ line.thu_ot }}</td>
+                            <td>{{ line.fri_st }}</td>
+                            <td>{{ line.fri_ot }}</td>
+                            <td>{{ line.sat_st }}</td>
+                            <td>{{ line.sat_ot }}</td>
+                            <td>{{ line.sun_st }}</td>
+                            <td>{{ line.sun_ot }}</td>
+                            <td>{{ line.vacation }}</td>
+                            <td>{{ line.holiday }}</td>
+                            <td>{{ line.comp_time }}</td>
+                            <td>{{ line.funeral_bereavement }}</td>
+                            <td>{{ line.jury_duty }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="summary-strip">
+                <span>Straight Time: {{ totals.straight_time }}</span>
+                <span>Overtime: {{ totals.overtime }}</span>
+                <span>Vacation: {{ totals.vacation }}</span>
+                <span>Holiday: {{ totals.holiday }}</span>
+                <span>Grand: {{ totals.grand }}</span>
+            </div>
+
+            <form method="post" class="approval-actions">
+                {% csrf_token %}
+                <label>
+                    Approver Comment
+                    <textarea name="approver_comment" rows="3" placeholder="Optional review notes"></textarea>
+                </label>
+                <div class="panel-actions between">
+                    <button type="submit" class="btn btn-primary" name="action" value="approve">Approve</button>
+                    <button type="submit" class="btn btn-soft" name="action" value="reject">Reject</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

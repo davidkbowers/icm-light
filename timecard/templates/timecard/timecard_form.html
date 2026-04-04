@@ -1,0 +1,186 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Weekly Time Card</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'timecard/timecard.css' %}">
+</head>
+<body>
+    <div class="bg-shape bg-shape-a"></div>
+    <div class="bg-shape bg-shape-b"></div>
+    <main class="page-shell">
+        <header class="hero">
+            <p class="hero-kicker">Time + Attendance</p>
+            <h1>Weekly Time Card</h1>
+            <p class="hero-subtitle">Enter labor lines with Mon-Sun ST/OT columns, review totals, and route for approval.</p>
+            <div class="hero-actions"><a class="btn btn-soft" href="{% url 'timecard:dashboard' %}">Open Approver Dashboard</a></div>
+        </header>
+
+        {% if submitted %}
+        <section class="success-card">
+            <h2>Time card ready for approval</h2>
+            <p>
+                <strong>{{ saved.employee_name }}</strong> logged
+                <strong>{{ saved.totals.grand }}</strong> total hours for week ending
+                {{ saved.week_ending }}.
+            </p>
+            <div class="success-metrics">
+                <span>Straight Time: {{ saved.totals.straight_time }}</span>
+                <span>Overtime: {{ saved.totals.overtime }}</span>
+                <span>Vacation: {{ saved.totals.vacation }}</span>
+                <span>Holiday: {{ saved.totals.holiday }}</span>
+            </div>
+            <div class="success-metrics">
+                <a href="{% url 'timecard:dashboard-detail' saved.card_id %}">Review Card #{{ saved.card_id }}</a>
+                <a href="{% url 'timecard:timecard-print-preview' saved.card_id %}">Open Print Preview</a>
+            </div>
+        </section>
+        {% endif %}
+
+        <form method="post" class="timecard-app" id="timecard-form" novalidate>
+            {% csrf_token %}
+            {{ form.entries_json }}
+
+            {% if form.non_field_errors %}
+            <div class="error-banner">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="stepper" aria-label="Time card progress">
+                <button type="button" class="step is-active" data-step-target="1">1. Employee</button>
+                <button type="button" class="step" data-step-target="2">2. Daily Grid</button>
+                <button type="button" class="step" data-step-target="3">3. Approvals</button>
+            </div>
+
+            <div class="layout-grid">
+                <section class="panel step-panel is-active" data-step="1">
+                    <h2>Employee Details</h2>
+                    <p class="muted">Mapped to the paper card header fields for payroll routing.</p>
+
+                    <div class="field-grid">
+                        <label>
+                            <span>{{ form.employee_name.label }}</span>
+                            {{ form.employee_name }}
+                            {{ form.employee_name.errors }}
+                        </label>
+                        <label>
+                            <span>{{ form.week_ending.label }}</span>
+                            {{ form.week_ending }}
+                            {{ form.week_ending.errors }}
+                        </label>
+                        <label>
+                            <span>{{ form.project_name_location.label }}</span>
+                            {{ form.project_name_location }}
+                            {{ form.project_name_location.errors }}
+                        </label>
+                    </div>
+
+                    <div class="panel-actions">
+                        <button type="button" class="btn btn-primary" data-next-step>Continue to Planner</button>
+                    </div>
+                </section>
+
+                <section class="panel step-panel" data-step="2">
+                    <h2>Labor Lines with Day Columns</h2>
+                    <p class="muted">Each labor line includes Mon-Sun ST/OT columns plus weekly leave buckets.</p>
+
+                    <div class="line-items" id="line-items"></div>
+                    <div class="panel-actions between compact">
+                        <button type="button" class="btn btn-soft" id="add-line-btn">Add Labor Line</button>
+                    </div>
+
+                    <div class="panel-actions between">
+                        <button type="button" class="btn btn-soft" data-prev-step>Back</button>
+                        <button type="button" class="btn btn-primary" data-next-step>Continue to Approvals</button>
+                    </div>
+                </section>
+
+                <section class="panel step-panel" data-step="3">
+                    <h2>Approval Workflow</h2>
+                    <p class="muted">Prepared by and approval fields mapped from the right-side workflow panel.</p>
+
+                    <div class="field-grid approval-grid">
+                        <label>
+                            <span>{{ form.prepared_by.label }}</span>
+                            {{ form.prepared_by }}
+                            {{ form.prepared_by.errors }}
+                        </label>
+                        <label>
+                            <span>{{ form.prepared_date.label }}</span>
+                            {{ form.prepared_date }}
+                            {{ form.prepared_date.errors }}
+                        </label>
+                        <label>
+                            <span>{{ form.approved_by.label }}</span>
+                            {{ form.approved_by }}
+                            {{ form.approved_by.errors }}
+                        </label>
+                        <label>
+                            <span>{{ form.approved_date.label }}</span>
+                            {{ form.approved_date }}
+                            {{ form.approved_date.errors }}
+                        </label>
+                        <label>
+                            <span>{{ form.entered_by.label }}</span>
+                            {{ form.entered_by }}
+                            {{ form.entered_by.errors }}
+                        </label>
+                        <label>
+                            <span>{{ form.entered_date.label }}</span>
+                            {{ form.entered_date }}
+                            {{ form.entered_date.errors }}
+                        </label>
+                    </div>
+
+                    <label>
+                        <span>{{ form.notes.label }}</span>
+                        {{ form.notes }}
+                        {{ form.notes.errors }}
+                    </label>
+
+                    <label class="checkbox-row">
+                        {{ form.certify }}
+                        <span>{{ form.certify.label }}</span>
+                    </label>
+                    {{ form.certify.errors }}
+
+                    <div class="review-box" id="review-box"></div>
+
+                    <div class="panel-actions between">
+                        <button type="button" class="btn btn-soft" data-prev-step>Back</button>
+                        <button type="submit" class="btn btn-primary">Submit Time Card</button>
+                    </div>
+                </section>
+
+                <aside class="summary panel">
+                    <h3>Daily Totals / Current</h3>
+                    <div class="day-total-grid">
+                        <div class="metric-row"><span>Mon</span><strong id="day-mon">0.00</strong></div>
+                        <div class="metric-row"><span>Tue</span><strong id="day-tue">0.00</strong></div>
+                        <div class="metric-row"><span>Wed</span><strong id="day-wed">0.00</strong></div>
+                        <div class="metric-row"><span>Thu</span><strong id="day-thu">0.00</strong></div>
+                        <div class="metric-row"><span>Fri</span><strong id="day-fri">0.00</strong></div>
+                        <div class="metric-row"><span>Sat</span><strong id="day-sat">0.00</strong></div>
+                        <div class="metric-row"><span>Sun</span><strong id="day-sun">0.00</strong></div>
+                    </div>
+                    <div class="metric-row"><span>Straight Time</span><strong id="sum-straight-time">0.00</strong></div>
+                    <div class="metric-row"><span>Overtime</span><strong id="sum-overtime">0.00</strong></div>
+                    <div class="metric-row"><span>Vacation</span><strong id="sum-vacation">0.00</strong></div>
+                    <div class="metric-row"><span>Holiday</span><strong id="sum-holiday">0.00</strong></div>
+                    <div class="metric-row"><span>Comp Time</span><strong id="sum-comp-time">0.00</strong></div>
+                    <div class="metric-row"><span>Funeral/Bereavement</span><strong id="sum-funeral">0.00</strong></div>
+                    <div class="metric-row"><span>Jury Duty</span><strong id="sum-jury">0.00</strong></div>
+                    <div class="metric-row grand"><span>Total</span><strong id="sum-grand">0.00</strong></div>
+                </aside>
+            </div>
+        </form>
+    </main>
+    <script src="{% static 'timecard/timecard.js' %}"></script>
+</body>
+</html>

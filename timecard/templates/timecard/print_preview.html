@@ -1,0 +1,69 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Print Preview | Time Card #{{ card.id }}</title>
+    <link rel="stylesheet" href="{% static 'timecard/timecard.css' %}">
+</head>
+<body class="print-preview-body">
+    <main class="print-preview-shell">
+        <section class="preview-toolbar no-print">
+            <a class="btn btn-soft" href="{% url 'timecard:dashboard-detail' card.id %}">Back to Review</a>
+            <a class="btn btn-soft" href="{% url 'timecard:dashboard' %}">Dashboard</a>
+            <a class="btn btn-primary" href="{% url 'timecard:timecard-pdf' card.id %}">Download PDF</a>
+            <button type="button" class="btn btn-primary" onclick="window.print()">Print This Page</button>
+        </section>
+
+        <section class="pdf-sheet">
+            <h1>WEEKLY EMPLOYEE TIME SHEET</h1>
+            <div class="pdf-meta-row">
+                <span><strong>Employee Name:</strong> {{ card.employee_name }}</span>
+                <span><strong>Week Ending:</strong> {{ card.week_ending }}</span>
+                <span><strong>Project Name and Location:</strong> {{ card.project_name_location|default:"-" }}</span>
+            </div>
+
+            <div class="pdf-grid-wrap">
+                <table class="pdf-grid" width="{{ total_width }}">
+                    <colgroup>
+                        {% for label, width in columns %}
+                        <col width="{{ width }}">
+                        {% endfor %}
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            {% for label, width in columns %}
+                            <th>{{ label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            {% for value in row %}
+                            <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pdf-totals-row">
+                <div>
+                    <h2>Daily Totals / Current</h2>
+                    <p>Straight Time: {{ totals.straight_time|floatformat:2 }}    Overtime: {{ totals.overtime|floatformat:2 }}    Vacation: {{ totals.vacation|floatformat:2 }}</p>
+                    <p>Holiday: {{ totals.holiday|floatformat:2 }}    Comp Time: {{ totals.comp_time|floatformat:2 }}    Funeral/Bereavement: {{ totals.funeral_bereavement|floatformat:2 }}</p>
+                    <p>Jury Duty: {{ totals.jury_duty|floatformat:2 }}    Grand Total: {{ totals.grand|floatformat:2 }}</p>
+                </div>
+                <div>
+                    <p>Prepared By: {{ card.prepared_by }} ({{ card.prepared_date }})</p>
+                    <p>Approved By: {{ card.approved_by|default:"-" }} ({{ card.approved_date|default:"-" }})</p>
+                    <p>Entered By: {{ card.entered_by|default:"-" }} ({{ card.entered_date|default:"-" }})</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

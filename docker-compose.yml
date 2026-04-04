@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    container_name: icm-web
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_DEBUG: "1"
+      DJANGO_SECRET_KEY: "change-me-for-prod"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+    volumes:
+      - .:/app
+      - staticfiles:/app/staticfiles
+
+volumes:
+  staticfiles:
