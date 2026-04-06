@@ -1,2 +1,4 @@
 /.venv
 /db.sqlite3
+config/__pycache__/
+config/__pycache__/settings.cpython-313.pyc
